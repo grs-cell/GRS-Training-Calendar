@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GRS Training Calendar 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#1F2A24;
+    --ink-soft:#4B564E;
+    --paper:#F6F4EE;
+    --surface:#FFFFFF;
+    --line:#E3DECF;
+    --brand:#234E52;
+    --brand-dark:#173436;
+    --brand-tint:#DCEAE8;
+    --accent:#BE7A2E;
+    --accent-tint:#F3E4CE;
+    --confirmed:#3F7A52;
+    --confirmed-tint:#E1EEE2;
+    --pending:#BE7A2E;
+    --pending-tint:#F3E4CE;
+    --tbd:#8A8172;
+    --tbd-tint:#EDEAE1;
+    --completed:#2E5F87;
+    --completed-tint:#DEE7EE;
+    --cancelled:#AB4B3B;
+    --cancelled-tint:#F1DEDA;
+    --radius:10px;
+    --shadow: 0 1px 2px rgba(31,42,36,0.06), 0 4px 14px rgba(31,42,36,0.05);
+    font-family:"Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);}
+  body{min-height:100vh;}
+  h1,h2,h3,h4{font-family:"Fraunces", Georgia, serif; font-weight:600; margin:0; letter-spacing:-0.01em;}
+  button{font-family:inherit;}
+  ::selection{background:var(--brand-tint);}
+
+  a{color:var(--brand);}
+
+  /* Layout */
+  #app{display:flex; min-height:100vh; flex-direction:column;}
+  .topbar{
+    background:var(--brand-dark);
+    color:#F3F0E6;
+    padding:14px 22px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .brand-block{display:flex; align-items:baseline; gap:10px;}
+  .brand-block h1{color:#fff; font-size:1.35rem;}
+  .brand-block .yr{
+    font-family:"Public Sans"; font-size:0.72rem; letter-spacing:.06em;
+    background:rgba(255,255,255,0.14); padding:3px 8px; border-radius:20px; color:#F3F0E6;
+  }
+  .subtitle{font-size:.82rem; color:#BFD3D0; margin-top:2px;}
+
+  .identity{
+    display:flex; align-items:center; gap:10px; font-size:.85rem;
+  }
+  .identity .who{background:rgba(255,255,255,.1); padding:6px 12px; border-radius:20px; display:flex; gap:8px; align-items:center;}
+  .role-pill{
+    font-size:.68rem; letter-spacing:.03em; padding:2px 8px; border-radius:20px; font-weight:600;
+  }
+  .role-Admin{background:#E9C892; color:#4A2E05;}
+  .role-Team\ Member{background:#BFE0D6; color:#123B31;}
+  .role-Viewer{background:#D9D4C4; color:#3B362A;}
+
+  .btn{
+    border:1px solid transparent; background:var(--brand); color:#fff; padding:8px 14px;
+    border-radius:8px; cursor:pointer; font-size:.85rem; font-weight:600; transition:background .15s ease;
+  }
+  .btn:hover{background:var(--brand-dark);}
+  .btn.secondary{background:transparent; border-color:var(--line); color:var(--ink);}
+  .btn.secondary:hover{background:var(--surface); border-color:var(--ink-soft);}
+  .btn.ghost{background:transparent; color:#F3F0E6; border:1px solid rgba(255,255,255,.35); padding:6px 12px; font-size:.78rem;}
+  .btn.ghost:hover{background:rgba(255,255,255,.12);}
+  .btn.danger{background:var(--cancelled);}
+  .btn.danger:hover{background:#8f3b2e;}
+  .btn:disabled{opacity:.45; cursor:not-allowed;}
+  .btn.small{padding:5px 10px; font-size:.76rem;}
+
+  .tabs{
+    display:flex; gap:2px; padding:0 22px; background:var(--brand); flex-wrap:wrap;
+  }
+  .tab{
+    padding:11px 16px; color:#DCEAE8; cursor:pointer; font-size:.85rem; font-weight:600;
+    border-bottom:3px solid transparent; opacity:.85;
+  }
+  .tab:hover{opacity:1;}
+  .tab.active{color:#fff; border-bottom-color:var(--accent); opacity:1;}
+
+  .layout{display:flex; flex:1; align-items:flex-start;}
+  .sidebar{
+    width:250px; flex-shrink:0; padding:18px 16px; border-right:1px solid var(--line);
+    background:var(--surface); min-height:calc(100vh - 106px);
+  }
+  .sidebar h4{font-size:.72rem; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-soft); margin-bottom:8px; font-family:"Public Sans"; font-weight:700;}
+  .sidebar .filter-group{margin-bottom:20px;}
+  .chip-list{display:flex; flex-direction:column; gap:6px;}
+  .chip-check{display:flex; align-items:center; gap:7px; font-size:.83rem; cursor:pointer; color:var(--ink);}
+  .chip-check input{accent-color:var(--brand);}
+  input[type=text], input[type=search], select, textarea{
+    width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:7px; font-size:.85rem;
+    background:var(--surface); color:var(--ink); font-family:inherit;
+  }
+  input[type=text]:focus, select:focus, textarea:focus{outline:2px solid var(--brand-tint); border-color:var(--brand);}
+  .clear-filters{font-size:.78rem; color:var(--brand); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline;}
+
+  main{flex:1; padding:22px 26px; min-width:0;}
+  .toolbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; flex-wrap:wrap;}
+  .toolbar .count{font-size:.85rem; color:var(--ink-soft);}
+  .actions-right{display:flex; gap:8px; flex-wrap:wrap;}
+
+  table{border-collapse:collapse; width:100%; background:var(--surface); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow);}
+  th,td{padding:9px 10px; text-align:left; border-bottom:1px solid var(--line); font-size:.82rem; vertical-align:middle;}
+  thead th{background:var(--brand); color:#EFEFE6; font-weight:600; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em;}
+  thead tr.qrow th{background:var(--brand-dark); font-size:.66rem; text-align:center; padding:4px;}
+  tbody tr:hover{background:#FBFAF6;}
+  .month-cell{text-align:center; width:30px;}
+  .dot{width:13px; height:13px; border-radius:50%; display:inline-block; border:1px solid rgba(0,0,0,.08);}
+  .cell-curr{font-weight:600;}
+  .muted{color:var(--ink-soft);}
+  .status-badge{
+    display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:20px; font-size:.72rem; font-weight:600;
+  }
+  .status-badge::before{content:""; width:7px; height:7px; border-radius:50%;}
+  .trainer-tag{display:inline-block; background:var(--brand-tint); color:var(--brand-dark); padding:2px 8px; border-radius:12px; font-size:.72rem; margin:1px 3px 1px 0;}
+  .row-actions{display:flex; gap:6px;}
+  .icon-btn{background:none; border:1px solid var(--line); border-radius:6px; padding:4px 8px; cursor:pointer; font-size:.76rem; color:var(--ink-soft);}
+  .icon-btn:hover{border-color:var(--brand); color:var(--brand);}
+  .icon-btn.danger:hover{border-color:var(--cancelled); color:var(--cancelled);}
+
+  .card-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:14px;}
+  .trainer-card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:14px; box-shadow:var(--shadow);}
+  .trainer-card h4{font-size:1rem;}
+  .trainer-card .meta{font-size:.78rem; color:var(--ink-soft); margin:4px 0 8px;}
+  .trainer-card .specialties{margin-bottom:8px;}
+  .empty-state{
+    text-align:center; padding:50px 20px; color:var(--ink-soft); background:var(--surface); border-radius:var(--radius); border:1px dashed var(--line);
+  }
+  .empty-state h3{color:var(--ink); margin-bottom:6px;}
+
+  dialog{
+    border:none; border-radius:14px; padding:0; width:min(560px, 92vw); box-shadow:0 20px 60px rgba(0,0,0,.25);
+  }
+  dialog::backdrop{background:rgba(23,32,26,.45);}
+  .dialog-head{padding:18px 22px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center;}
+  .dialog-body{padding:20px 22px; max-height:65vh; overflow-y:auto;}
+  .dialog-foot{padding:16px 22px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; gap:8px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:.78rem; font-weight:600; margin-bottom:5px; color:var(--ink-soft);}
+  .field-row{display:flex; gap:10px;}
+  .field-row .field{flex:1;}
+  .checkbox-grid{display:grid; grid-template-columns:1fr 1fr; gap:6px; max-height:140px; overflow-y:auto; border:1px solid var(--line); padding:8px; border-radius:7px;}
+  .close-x{background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--ink-soft);}
+  .help-text{font-size:.74rem; color:var(--ink-soft); margin-top:4px;}
+
+  .legend-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; margin-bottom:26px;}
+  .legend-item{display:flex; gap:12px; align-items:flex-start; background:var(--surface); padding:14px; border-radius:var(--radius); border:1px solid var(--line);}
+  .legend-item .dot{width:16px; height:16px; margin-top:3px; flex-shrink:0;}
+  .legend-item h4{font-size:.9rem;}
+  .legend-item p{margin:3px 0 0; font-size:.78rem; color:var(--ink-soft);}
+
+  .log-item{border-bottom:1px solid var(--line); padding:10px 0; font-size:.83rem;}
+  .log-item .when{color:var(--ink-soft); font-size:.74rem;}
+
+  .banner{
+    background:var(--accent-tint); border:1px solid #E3C48E; color:#5C4113; padding:10px 14px; border-radius:8px; font-size:.8rem; margin-bottom:16px;
+  }
+
+  .master-list{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;}
+  .master-chip{background:var(--brand-tint); color:var(--brand-dark); padding:4px 10px 4px 12px; border-radius:20px; font-size:.78rem; display:flex; align-items:center; gap:6px;}
+  .master-chip button{background:none; border:none; cursor:pointer; color:var(--brand-dark); font-size:.9rem; line-height:1;}
+  .add-inline{display:flex; gap:6px; margin-bottom:22px;}
+  .add-inline input{flex:1;}
+
+  .stat-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:14px; margin-bottom:22px;}
+  .stat-card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow);}
+  .stat-value{font-family:"Fraunces", serif; font-size:1.9rem; font-weight:600; color:var(--brand-dark); line-height:1.1;}
+  .stat-label{font-size:.76rem; color:var(--ink-soft); margin-top:4px; letter-spacing:.02em;}
+  .chart-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(320px,1fr)); gap:16px;}
+  .chart-card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; box-shadow:var(--shadow);}
+  .chart-card h4{font-size:.95rem; margin-bottom:12px;}
+  .chart-wrap{position:relative; height:260px;}
+  .chart-wrap.tall{height:320px;}
+
+  .loading-wrap{display:flex; align-items:center; justify-content:center; min-height:60vh; flex-direction:column; gap:10px; color:var(--ink-soft);}
+  .spinner{width:30px; height:30px; border:3px solid var(--line); border-top-color:var(--brand); border-radius:50%; animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  @media (max-width: 860px){
+    .layout{flex-direction:column;}
+    .sidebar{width:100%; border-right:none; border-bottom:1px solid var(--line);}
+    main{padding:16px;}
+    table{font-size:.74rem;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="loading-wrap" id="loading">
+    <div class="spinner"></div>
+    <div>Loading training calendar…</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- Config / constants ---------------- */
+  var MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+  var STATUS = {
+    confirmed: {label:"Training confirmed", color:"#3F7A52", tint:"#E1EEE2"},
+    pending:   {label:"Pending date confirmation", color:"#BE7A2E", tint:"#F3E4CE"},
+    tbd:       {label:"Planning / TBD", color:"#8A8172", tint:"#EDEAE1"},
+    completed: {label:"Completed", color:"#2E5F87", tint:"#DEE7EE"},
+    cancelled: {label:"Cancelled", color:"#AB4B3B", tint:"#F1DEDA"}
+  };
+  var ROLES = ["Viewer","Team Member","Admin"];
+
+  var DEFAULT_LISTS = {
+    countries: ["Malawi","Zambia","Kenya","Mozambique","Nigeria","South Africa","Uganda","Ethiopia","USA","Papua New Guinea"],
+    curricula: ["SKILLZ Core","SKILLZ Girls","SKILLZ Girl and Guyz","MindSKILLZ","ToMC","ToT/ToMC"],
+    types: ["ToC","ToMC","ToT","Orientation","Refresher","Other"]
+  };
+
+  var SEED_TRAININGS = [
+    {curriculum:"SKILLZ Core", country:"Malawi", type:"ToC", month:null, status:"confirmed", trainers:[], notes:""},
+    {curriculum:"SKILLZ Girl and Guyz", country:"Zambia", type:"Orientation", month:4, status:"confirmed", trainers:[], notes:""},
+    {curriculum:"SKILLZ Core", country:"Zambia", type:"Orientation", month:4, status:"confirmed", trainers:[], notes:""},
+    {curriculum:"MindSKILLZ", country:"Kenya", type:"ToMC, ToC", month:8, status:"confirmed", trainers:[], notes:""},
+    {curriculum:"SKILLZ Girls", country:"Mozambique", type:"ToC, Refresher", month:5, status:"confirmed", trainers:[], notes:""},
+    {curriculum:"ToMC", country:"Mozambique", type:"ToMC", month:5, status:"confirmed", trainers:[], notes:""},
+    {curriculum:"MindSKILLZ", country:"Nigeria", type:"ToC", month:6, status:"pending", trainers:[], notes:""},
+    {curriculum:"ToT/ToMC", country:"South Africa", type:"Other", month:null, status:"tbd", trainers:[], notes:""},
+    {curriculum:"MindSKILLZ", country:"Uganda", type:"ToC", month:null, status:"confirmed", trainers:[], notes:""},
+    {curriculum:"MindSKILLZ", country:"Kenya", type:"ToMC", month:null, status:"confirmed", trainers:[], notes:""},
+    {curriculum:"MindSKILLZ", country:"Kenya", type:"ToC", month:null, status:"confirmed", trainers:[], notes:""},
+    {curriculum:"MindSKILLZ", country:"Malawi", type:"Orientation of MindSKILLZ to National League Champions", month:null, status:"confirmed", trainers:[], notes:""},
+    {curriculum:"MindSKILLZ", country:"Malawi", type:"ToC", month:null, status:"confirmed", trainers:[], notes:""},
+    {curriculum:"ToMC", country:"Ethiopia", type:"ToMC", month:null, status:"pending", trainers:[], notes:""},
+    {curriculum:"MindSKILLZ", country:"Ethiopia", type:"ToC", month:null, status:"pending", trainers:[], notes:""}
+  ];
+
+  /* ---------------- State ---------------- */
+  var state = {
+    trainings: [],
+    trainers: [],
+    lists: null,
+    identity: {name:"", role:"Viewer", country:""},
+    tab: "dashboard",
+    filters: {search:"", countries:[], statuses:[], trainerId:""},
+    log: [],
+    loaded: false
+  };
+  var chartInstances = {};
+
+  /* ---------------- Storage helpers ---------------- */
+  async function storageGet(key, shared){
+    try{
+      var r = await window.storage.get(key, !!shared);
+      return r ? r.value : null;
+    }catch(e){ return null; }
+  }
+  async function storageSet(key, value, shared){
+    try{
+      await window.storage.set(key, value, !!shared);
+      return true;
+    }catch(e){ console.error("storage set failed", key, e); return false; }
+  }
+
+  function uid(prefix){ return prefix + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+  /* ---------------- Load / init ---------------- */
+  async function init(){
+    var t = await storageGet("trainings-v1", true);
+    if(t){
+      try{ state.trainings = JSON.parse(t); }catch(e){ state.trainings = []; }
+    } else {
+      state.trainings = SEED_TRAININGS.map(function(x){
+        x.id = uid("tr");
+        x.updatedBy = "Seed data";
+        x.updatedAt = new Date().toISOString();
+        return x;
+      });
+      await storageSet("trainings-v1", JSON.stringify(state.trainings), true);
+    }
+
+    var tr = await storageGet("trainers-v1", true);
+    if(tr){
+      try{ state.trainers = JSON.parse(tr); }catch(e){ state.trainers = []; }
+    } else {
+      state.trainers = [];
+      await storageSet("trainers-v1", JSON.stringify(state.trainers), true);
+    }
+
+    var li = await storageGet("lists-v1", true);
+    if(li){
+      try{ state.lists = JSON.parse(li); }catch(e){ state.lists = DEFAULT_LISTS; }
+      var changed = false;
+      Object.keys(DEFAULT_LISTS).forEach(function(key){
+        if(!state.lists[key]) { state.lists[key] = []; }
+        DEFAULT_LISTS[key].forEach(function(v){
+          if(state.lists[key].indexOf(v) === -1){ state.lists[key].push(v); changed = true; }
+        });
+      });
+      if(changed) await storageSet("lists-v1", JSON.stringify(state.lists), true);
+    } else {
+      state.lists = DEFAULT_LISTS;
+      await storageSet("lists-v1", JSON.stringify(state.lists), true);
+    }
+
+    var log = await storageGet("activity-log-v1", true);
+    if(log){
+      try{ state.log = JSON.parse(log); }catch(e){ state.log = []; }
+    } else {
+      state.log = [];
+    }
+
+    var idn = await storageGet("identity-v1", false);
+    if(idn){
+      try{ state.identity = JSON.parse(idn); }catch(e){}
+    }
+
+    state.loaded = true;
+    render();
+  }
+
+  async function persistTrainings(){ await storageSet("trainings-v1", JSON.stringify(state.trainings), true); }
+  async function persistTrainers(){ await storageSet("trainers-v1", JSON.stringify(state.trainers), true); }
+  async function persistLists(){ await storageSet("lists-v1", JSON.stringify(state.lists), true); }
+  async function persistIdentity(){ await storageSet("identity-v1", JSON.stringify(state.identity), false); }
+  async function persistLog(){
+    if(state.log.length > 80) state.log = state.log.slice(0,80);
+    await storageSet("activity-log-v1", JSON.stringify(state.log), true);
+  }
+
+  function logAction(action, detail){
+    state.log.unshift({
+      ts: new Date().toISOString(),
+      user: state.identity.name || "Guest",
+      role: state.identity.role,
+      action: action,
+      detail: detail
+    });
+    persistLog();
+  }
+
+  /* ---------------- Permissions ---------------- */
+  function canEdit(){ return state.identity.role === "Team Member" || state.identity.role === "Admin"; }
+  function isAdmin(){ return state.identity.role === "Admin"; }
+
+  /* ---------------- Utility ---------------- */
+  function esc(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+  function trainerName(id){
+    var t = state.trainers.find(function(x){ return x.id === id; });
+    return t ? t.name : null;
+  }
+  function statusBadge(key){
+    var s = STATUS[key] || STATUS.tbd;
+    return '<span class="status-badge" style="background:'+s.tint+'; color:'+s.color+';"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+s.color+';"></span>'+esc(s.label)+'</span>';
+  }
+  function filteredTrainings(){
+    return state.trainings.filter(function(t){
+      var f = state.filters;
+      if(f.search){
+        var hay = (t.curriculum+" "+t.country+" "+t.type+" "+(t.notes||"")).toLowerCase();
+        if(hay.indexOf(f.search.toLowerCase()) === -1) return false;
+      }
+      if(f.countries.length && f.countries.indexOf(t.country) === -1) return false;
+      if(f.statuses.length && f.statuses.indexOf(t.status) === -1) return false;
+      if(f.trainerId && (t.trainers||[]).indexOf(f.trainerId) === -1) return false;
+      return true;
+    }).sort(function(a,b){
+      if(a.country !== b.country) return a.country.localeCompare(b.country);
+      return a.curriculum.localeCompare(b.curriculum);
+    });
+  }
+
+  /* ---------------- Render root ---------------- */
+  function render(){
+    if(!state.loaded) return;
+    var app = document.getElementById("app");
+    app.innerHTML =
+      renderTopbar() +
+      renderTabs() +
+      '<div class="layout">' +
+        renderSidebar() +
+        '<main>' + renderMain() + '</main>' +
+      '</div>';
+    bindGlobalEvents();
+    if(state.tab === "dashboard") renderCharts();
+  }
+
+  function renderTopbar(){
+    var idn = state.identity;
+    var roleClass = "role-" + idn.role.replace(" ","\\ ");
+    return '' +
+    '<div class="topbar">' +
+      '<div class="brand-block">' +
+        '<div><h1>GRS Training Calendar <span class="yr">2026</span></h1>' +
+        '<div class="subtitle">Shared calendar for curriculum trainings across all country teams</div></div>' +
+      '</div>' +
+      '<div class="identity">' +
+        '<div class="who">' +
+          '<span>' + (idn.name ? esc(idn.name) : "Guest") + '</span>' +
+          '<span class="role-pill ' + roleClass + '">' + esc(idn.role) + '</span>' +
+        '</div>' +
+        '<button class="btn ghost" id="btn-identity">Switch user</button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderTabs(){
+    var tabs = [
+      ["dashboard","Dashboard"],
+      ["calendar","Calendar overview"],
+      ["register","Detailed register"],
+      ["trainers","Trainers"],
+      ["legend","Colour key & lists"],
+      ["log","Activity log"]
+    ];
+    return '<div class="tabs">' + tabs.map(function(t){
+      return '<div class="tab ' + (state.tab===t[0]?'active':'') + '" data-tab="'+t[0]+'">'+t[1]+'</div>';
+    }).join("") + '</div>';
+  }
+
+  function renderSidebar(){
+    var f = state.filters;
+    var countryChips = state.lists.countries.map(function(c){
+      return '<label class="chip-check"><input type="checkbox" class="f-country" value="'+esc(c)+'" '+(f.countries.indexOf(c)>-1?'checked':'')+'> '+esc(c)+'</label>';
+    }).join("");
+    var statusChips = Object.keys(STATUS).map(function(k){
+      return '<label class="chip-check"><input type="checkbox" class="f-status" value="'+k+'" '+(f.statuses.indexOf(k)>-1?'checked':'')+'> '+esc(STATUS[k].label)+'</label>';
+    }).join("");
+    var trainerOptions = state.trainers.map(function(t){
+      return '<option value="'+t.id+'" '+(f.trainerId===t.id?'selected':'')+'>'+esc(t.name)+'</option>';
+    }).join("");
+
+    return '' +
+    '<div class="sidebar">' +
+      '<div class="filter-group">' +
+        '<h4>Search</h4>' +
+        '<input type="search" id="f-search" placeholder="Curriculum, country, notes…" value="'+esc(f.search)+'">' +
+      '</div>' +
+      '<div class="filter-group">' +
+        '<h4>Country</h4>' +
+        '<div class="chip-list">' + countryChips + '</div>' +
+      '</div>' +
+      '<div class="filter-group">' +
+        '<h4>Status</h4>' +
+        '<div class="chip-list">' + statusChips + '</div>' +
+      '</div>' +
+      '<div class="filter-group">' +
+        '<h4>Trainer</h4>' +
+        '<select id="f-trainer"><option value="">All trainers</option>' + trainerOptions + '</select>' +
+      '</div>' +
+      '<button class="clear-filters" id="clear-filters">Clear all filters</button>' +
+    '</div>';
+  }
+
+  function renderMain(){
+    if(state.tab === "dashboard") return renderDashboardTab();
+    if(state.tab === "calendar") return renderCalendarTab();
+    if(state.tab === "register") return renderRegisterTab();
+    if(state.tab === "trainers") return renderTrainersTab();
+    if(state.tab === "legend") return renderLegendTab();
+    if(state.tab === "log") return renderLogTab();
+    return "";
+  }
+
+  function permissionBanner(){
+    if(canEdit()) return "";
+    return '<div class="banner">You\'re viewing in read-only mode. Ask an admin to set your role to <strong>Team Member</strong> or <strong>Admin</strong> under "Switch user" so you can add or edit trainings.</div>';
+  }
+
+  /* ---------------- Dashboard tab ---------------- */
+  function renderDashboardTab(){
+    var rows = filteredTrainings();
+    var confirmedCount = rows.filter(function(r){ return r.status==="confirmed"; }).length;
+    var pendingCount = rows.filter(function(r){ return r.status==="pending"; }).length;
+    var countriesActive = uniqueCount(rows.map(function(r){ return r.country; }));
+    var trainingsWithTrainers = rows.filter(function(r){ return (r.trainers||[]).length; }).length;
+
+    return '' +
+      permissionBanner() +
+      '<div class="stat-grid">' +
+        statCard("Total trainings", rows.length) +
+        statCard("Confirmed", confirmedCount, STATUS.confirmed.color) +
+        statCard("Pending date", pendingCount, STATUS.pending.color) +
+        statCard("Countries active", countriesActive) +
+        statCard("Trainers in directory", state.trainers.length) +
+        statCard("Trainings with a trainer assigned", trainingsWithTrainers) +
+      '</div>' +
+      '<div class="chart-grid">' +
+        chartCard("Trainings by country", "chart-country") +
+        chartCard("Trainings by status", "chart-status") +
+        chartCard("Trainings by trainer", "chart-trainer") +
+      '</div>' +
+      (rows.length ? '' : '<p class="help-text" style="margin-top:14px;">Charts will fill in as trainings are added — try the "+ Add training" button on the Calendar overview or Detailed register tab.</p>');
+  }
+
+  function uniqueCount(arr){
+    var seen = {};
+    var n = 0;
+    arr.forEach(function(v){ if(v && !seen[v]){ seen[v]=true; n++; } });
+    return n;
+  }
+
+  function statCard(label, value, color){
+    return '<div class="stat-card">' +
+      '<div class="stat-value"'+(color ? ' style="color:'+color+';"' : '')+'>'+value+'</div>' +
+      '<div class="stat-label">'+esc(label)+'</div>' +
+    '</div>';
+  }
+
+  function chartCard(title, canvasId){
+    return '<div class="chart-card"><h4>'+esc(title)+'</h4><div class="chart-wrap"><canvas id="'+canvasId+'"></canvas></div></div>';
+  }
+
+  function destroyCharts(){
+    Object.keys(chartInstances).forEach(function(k){
+      if(chartInstances[k]) chartInstances[k].destroy();
+    });
+    chartInstances = {};
+  }
+
+  function renderCharts(){
+    if(typeof Chart === "undefined") return;
+    destroyCharts();
+    var rows = filteredTrainings();
+
+    var countryCounts = {};
+    rows.forEach(function(r){ countryCounts[r.country] = (countryCounts[r.country]||0)+1; });
+    var countryLabels = Object.keys(countryCounts).sort(function(a,b){ return countryCounts[b]-countryCounts[a]; });
+    var ctxCountry = document.getElementById("chart-country");
+    if(ctxCountry){
+      if(countryLabels.length){
+        chartInstances.country = new Chart(ctxCountry, {
+          type: "bar",
+          data: {
+            labels: countryLabels,
+            datasets: [{ label:"Trainings", data: countryLabels.map(function(l){return countryCounts[l];}), backgroundColor:"#234E52", borderRadius:5, maxBarThickness:34 }]
+          },
+          options: {
+            responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{display:false}, tooltip:{callbacks:{label:function(c){return c.parsed.y+" training"+(c.parsed.y===1?"":"s");}}} },
+            scales:{ y:{ beginAtZero:true, ticks:{precision:0} }, x:{ ticks:{ autoSkip:false, font:{size:11} } } }
+          }
+        });
+      } else {
+        ctxCountry.parentElement.innerHTML = '<div class="empty-state" style="padding:20px;"><p>No trainings match the current filters.</p></div>';
+      }
+    }
+
+    var statusKeys = Object.keys(STATUS);
+    var statusCounts = statusKeys.map(function(k){ return rows.filter(function(r){ return r.status===k; }).length; });
+    var ctxStatus = document.getElementById("chart-status");
+    if(ctxStatus){
+      if(rows.length){
+        chartInstances.status = new Chart(ctxStatus, {
+          type: "doughnut",
+          data: {
+            labels: statusKeys.map(function(k){ return STATUS[k].label; }),
+            datasets: [{ data: statusCounts, backgroundColor: statusKeys.map(function(k){ return STATUS[k].color; }), borderWidth:2, borderColor:"#fff" }]
+          },
+          options: {
+            responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{ position:"bottom", labels:{ boxWidth:11, font:{size:11}, padding:12 } } }
+          }
+        });
+      } else {
+        ctxStatus.parentElement.innerHTML = '<div class="empty-state" style="padding:20px;"><p>No trainings match the current filters.</p></div>';
+      }
+    }
+
+    var trainerCounts = {};
+    rows.forEach(function(r){ (r.trainers||[]).forEach(function(tid){ trainerCounts[tid] = (trainerCounts[tid]||0)+1; }); });
+    var trainerIds = Object.keys(trainerCounts).sort(function(a,b){ return trainerCounts[b]-trainerCounts[a]; });
+    var ctxTrainer = document.getElementById("chart-trainer");
+    if(ctxTrainer){
+      if(trainerIds.length){
+        chartInstances.trainer = new Chart(ctxTrainer, {
+          type: "bar",
+          data: {
+            labels: trainerIds.map(function(id){ return trainerName(id) || "Unknown"; }),
+            datasets: [{ label:"Trainings", data: trainerIds.map(function(id){ return trainerCounts[id]; }), backgroundColor:"#BE7A2E", borderRadius:5, maxBarThickness:26 }]
+          },
+          options: {
+            indexAxis:"y", responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{display:false}, tooltip:{callbacks:{label:function(c){return c.parsed.x+" training"+(c.parsed.x===1?"":"s");}}} },
+            scales:{ x:{ beginAtZero:true, ticks:{precision:0} } }
+          }
+        });
+      } else {
+        ctxTrainer.parentElement.innerHTML = '<div class="empty-state" style="padding:20px;"><p>No trainers assigned to trainings yet.<br>Assign trainers from the training edit form, or add trainers in the Trainers tab.</p></div>';
+      }
+    }
+  }
+
+  /* ---------------- Calendar tab ---------------- */
+  function renderCalendarTab(){
+    var rows = filteredTrainings();
+    var qHeader = ['<th colspan="3">Q1</th>','<th colspan="3">Q2</th>','<th colspan="3">Q3</th>','<th colspan="3">Q4</th>'].join("");
+    var monthHeader = MONTHS.map(function(m){ return '<th class="month-cell">'+m+'</th>'; }).join("");
+
+    var body = rows.map(function(t){
+      var cells = MONTHS.map(function(m, i){
+        var monthNum = i+1;
+        if(t.month === monthNum){
+          var s = STATUS[t.status] || STATUS.tbd;
+          return '<td class="month-cell" title="'+esc(s.label)+'"><span class="dot" style="background:'+s.color+';"></span></td>';
+        }
+        return '<td class="month-cell"></td>';
+      }).join("");
+      var trainerNames = (t.trainers||[]).map(trainerName).filter(Boolean);
+      return '<tr class="calendar-row" data-id="'+t.id+'">' +
+        '<td class="cell-curr">'+esc(t.curriculum)+'</td>' +
+        '<td>'+esc(t.country)+'</td>' +
+        '<td class="muted">'+esc(t.type)+'</td>' +
+        cells +
+        '<td>'+statusBadge(t.status)+'</td>' +
+        '<td>'+(trainerNames.length ? trainerNames.map(function(n){return '<span class="trainer-tag">'+esc(n)+'</span>';}).join("") : '<span class="muted">—</span>')+'</td>' +
+      '</tr>';
+    }).join("");
+
+    if(!rows.length){
+      body = '<tr><td colspan="18"><div class="empty-state"><h3>No trainings match these filters</h3><p>Try clearing filters, or add a new training.</p></div></td></tr>';
+    }
+
+    return '' +
+      permissionBanner() +
+      '<div class="toolbar">' +
+        '<div class="count">'+rows.length+' training'+(rows.length===1?'':'s')+' shown — click a row to view or edit</div>' +
+        '<div class="actions-right">' +
+          (canEdit() ? '<button class="btn" id="btn-add-training">+ Add training</button>' : '') +
+          '<button class="btn secondary" id="btn-export">Export CSV</button>' +
+        '</div>' +
+      '</div>' +
+      '<div style="overflow-x:auto;">' +
+      '<table>' +
+        '<thead>' +
+          '<tr class="qrow"><th colspan="3"></th>' + qHeader + '<th colspan="2"></th></tr>' +
+          '<tr><th>Curriculum / Programme</th><th>Country</th><th>Type</th>' + monthHeader + '<th>Status</th><th>Trainers</th></tr>' +
+        '</thead>' +
+        '<tbody>' + body + '</tbody>' +
+      '</table>' +
+      '</div>';
+  }
+
+  /* ---------------- Register tab ---------------- */
+  function renderRegisterTab(){
+    var rows = filteredTrainings();
+    var body = rows.map(function(t){
+      var trainerNames = (t.trainers||[]).map(trainerName).filter(Boolean);
+      return '<tr>' +
+        '<td class="cell-curr">'+esc(t.curriculum)+'</td>' +
+        '<td>'+esc(t.country)+'</td>' +
+        '<td>'+esc(t.type)+'</td>' +
+        '<td>'+(t.month ? MONTHS[t.month-1] : '<span class="muted">TBD</span>')+'</td>' +
+        '<td>'+statusBadge(t.status)+'</td>' +
+        '<td>'+(trainerNames.length ? trainerNames.map(function(n){return '<span class="trainer-tag">'+esc(n)+'</span>';}).join("") : '<span class="muted">—</span>')+'</td>' +
+        '<td class="muted">'+esc(t.notes||"")+'</td>' +
+        '<td class="muted">'+ (t.updatedAt ? new Date(t.updatedAt).toLocaleDateString() : "") + (t.updatedBy ? ' · '+esc(t.updatedBy) : '') +'</td>' +
+        '<td><div class="row-actions">' +
+          (canEdit() ? '<button class="icon-btn" data-edit="'+t.id+'">Edit</button>' : '') +
+          (isAdmin() ? '<button class="icon-btn danger" data-delete="'+t.id+'">Delete</button>' : '') +
+        '</div></td>' +
+      '</tr>';
+    }).join("");
+
+    if(!rows.length){
+      body = '<tr><td colspan="9"><div class="empty-state"><h3>No trainings yet</h3><p>Add the first training for your country.</p></div></td></tr>';
+    }
+
+    return '' +
+      permissionBanner() +
+      '<div class="toolbar">' +
+        '<div class="count">'+rows.length+' training'+(rows.length===1?'':'s')+'</div>' +
+        '<div class="actions-right">' +
+          (canEdit() ? '<button class="btn" id="btn-add-training">+ Add training</button>' : '') +
+          '<button class="btn secondary" id="btn-export">Export CSV</button>' +
+        '</div>' +
+      '</div>' +
+      '<div style="overflow-x:auto;">' +
+      '<table>' +
+        '<thead><tr><th>Curriculum</th><th>Country</th><th>Type</th><th>Month</th><th>Status</th><th>Trainers</th><th>Notes</th><th>Last updated</th><th>Actions</th></tr></thead>' +
+        '<tbody>'+body+'</tbody>' +
+      '</table>' +
+      '</div>';
+  }
+
+  /* ---------------- Trainers tab ---------------- */
+  function renderTrainersTab(){
+    var list = state.trainers.slice().sort(function(a,b){ return a.name.localeCompare(b.name); });
+    var cards = list.map(function(t){
+      var count = state.trainings.filter(function(tr){ return (tr.trainers||[]).indexOf(t.id) > -1; }).length;
+      var specialties = (t.specialties||[]).map(function(s){ return '<span class="trainer-tag">'+esc(s)+'</span>'; }).join("");
+      return '<div class="trainer-card">' +
+        '<h4>'+esc(t.name)+'</h4>' +
+        '<div class="meta">'+esc(t.country||"Country not set")+(t.email ? ' · '+esc(t.email) : '')+'</div>' +
+        '<div class="specialties">'+(specialties || '<span class="muted" style="font-size:.78rem;">No specialties listed</span>')+'</div>' +
+        '<div class="muted" style="font-size:.78rem; margin-bottom:8px;">Assigned to '+count+' training'+(count===1?'':'s')+'</div>' +
+        '<div class="row-actions">' +
+          (canEdit() ? '<button class="icon-btn" data-edit-trainer="'+t.id+'">Edit</button>' : '') +
+          (isAdmin() ? '<button class="icon-btn danger" data-delete-trainer="'+t.id+'">Remove</button>' : '') +
+        '</div>' +
+      '</div>';
+    }).join("");
+
+    if(!list.length){
+      cards = '<div class="empty-state" style="grid-column:1/-1;"><h3>No trainers added yet</h3><p>Add trainers so you can assign them to trainings across countries.</p></div>';
+    }
+
+    return '' +
+      permissionBanner() +
+      '<div class="toolbar">' +
+        '<div class="count">'+list.length+' trainer'+(list.length===1?'':'s')+' in the directory</div>' +
+        '<div class="actions-right">' +
+          (canEdit() ? '<button class="btn" id="btn-add-trainer">+ Add trainer</button>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="card-grid">'+cards+'</div>';
+  }
+
+  /* ---------------- Legend / master lists tab ---------------- */
+  function renderLegendTab(){
+    var legendItems = Object.keys(STATUS).map(function(k){
+      var s = STATUS[k];
+      return '<div class="legend-item"><span class="dot" style="background:'+s.color+';"></span><div><h4>'+esc(s.label)+'</h4><p>'+legendDesc(k)+'</p></div></div>';
+    }).join("");
+
+    var listsBlock = "";
+    if(isAdmin()){
+      listsBlock = ['countries','curricula','types'].map(function(key){
+        var titleMap = {countries:"Countries", curricula:"Curricula / Programmes", types:"Training types"};
+        var chips = state.lists[key].map(function(v){
+          return '<span class="master-chip">'+esc(v)+'<button data-remove-list="'+key+'" data-value="'+esc(v)+'">×</button></span>';
+        }).join("");
+        return '<h4 style="margin-bottom:8px;">'+titleMap[key]+'</h4>' +
+          '<div class="master-list">'+chips+'</div>' +
+          '<div class="add-inline"><input type="text" placeholder="Add new…" data-list-input="'+key+'">' +
+          '<button class="btn secondary small" data-add-list="'+key+'">Add</button></div>';
+      }).join("");
+    }
+
+    return '' +
+      '<h3 style="margin-bottom:14px;">What the colours mean</h3>' +
+      '<div class="legend-grid">'+legendItems+'</div>' +
+      (isAdmin() ?
+        '<h3 style="margin-bottom:14px;">Master lists (Admin)</h3>' +
+        '<p class="help-text" style="margin-bottom:14px;">These lists power the dropdowns when adding a training. Only admins can edit them.</p>' +
+        listsBlock
+        : '<div class="banner">Master lists (countries, curricula, training types) can only be edited by an Admin.</div>'
+      ) +
+      '<h3 style="margin:26px 0 10px;">How this tool works</h3>' +
+      '<p class="help-text">This calendar is shared — anyone with this link who opens the artifact sees the same live data. Set your name and role under "Switch user" in the top bar. <strong>Viewers</strong> can browse; <strong>Team Members</strong> can add and edit trainings and trainers; <strong>Admins</strong> can also delete records and manage the master lists. This is a lightweight, self-declared identity (no password) — good for trusted internal teams, not for public access.</p>';
+  }
+
+  function legendDesc(key){
+    switch(key){
+      case "confirmed": return "Dates, venue and trainers are locked in.";
+      case "pending": return "Training is planned but the date still needs confirming.";
+      case "tbd": return "Early-stage planning — country or quarter only.";
+      case "completed": return "Training has already taken place.";
+      case "cancelled": return "Training will not go ahead as planned.";
+    }
+    return "";
+  }
+
+  /* ---------------- Log tab ---------------- */
+  function renderLogTab(){
+    if(!state.log.length){
+      return '<div class="empty-state"><h3>No activity yet</h3><p>Changes made by any team member will show up here.</p></div>';
+    }
+    return '<h3 style="margin-bottom:14px;">Recent activity</h3>' + state.log.map(function(l){
+      return '<div class="log-item"><div>'+
+        '<strong>'+esc(l.user)+'</strong> <span class="muted">('+esc(l.role)+')</span> '+esc(l.action)+
+        (l.detail ? ' — '+esc(l.detail) : '') +
+      '</div><div class="when">'+new Date(l.ts).toLocaleString()+'</div></div>';
+    }).join("");
+  }
+
+  /* ---------------- Events ---------------- */
+  function bindGlobalEvents(){
+    document.querySelectorAll(".tab").forEach(function(el){
+      el.addEventListener("click", function(){
+        state.tab = el.getAttribute("data-tab");
+        render();
+      });
+    });
+
+    var idBtn = document.getElementById("btn-identity");
+    if(idBtn) idBtn.addEventListener("click", openIdentityModal);
+
+    var search = document.getElementById("f-search");
+    if(search) search.addEventListener("input", function(){
+      state.filters.search = search.value;
+      renderMainOnly();
+    });
+
+    document.querySelectorAll(".f-country").forEach(function(el){
+      el.addEventListener("change", function(){
+        toggleFilterArray(state.filters.countries, el.value, el.checked);
+        renderMainOnly();
+      });
+    });
+    document.querySelectorAll(".f-status").forEach(function(el){
+      el.addEventListener("change", function(){
+        toggleFilterArray(state.filters.statuses, el.value, el.checked);
+        renderMainOnly();
+      });
+    });
+    var fTrainer = document.getElementById("f-trainer");
+    if(fTrainer) fTrainer.addEventListener("change", function(){
+      state.filters.trainerId = fTrainer.value;
+      renderMainOnly();
+    });
+    var clearBtn = document.getElementById("clear-filters");
+    if(clearBtn) clearBtn.addEventListener("click", function(){
+      state.filters = {search:"", countries:[], statuses:[], trainerId:""};
+      render();
+    });
+
+    var addTraining = document.getElementById("btn-add-training");
+    if(addTraining) addTraining.addEventListener("click", function(){ openTrainingModal(null); });
+
+    var exportBtn = document.getElementById("btn-export");
+    if(exportBtn) exportBtn.addEventListener("click", exportCSV);
+
+    document.querySelectorAll(".calendar-row").forEach(function(el){
+      el.addEventListener("click", function(){
+        openTrainingModal(el.getAttribute("data-id"));
+      });
+    });
+    document.querySelectorAll("[data-edit]").forEach(function(el){
+      el.addEventListener("click", function(e){ e.stopPropagation(); openTrainingModal(el.getAttribute("data-edit")); });
+    });
+    document.querySelectorAll("[data-delete]").forEach(function(el){
+      el.addEventListener("click", function(e){ e.stopPropagation(); deleteTraining(el.getAttribute("data-delete")); });
+    });
+
+    var addTrainer = document.getElementById("btn-add-trainer");
+    if(addTrainer) addTrainer.addEventListener("click", function(){ openTrainerModal(null); });
+    document.querySelectorAll("[data-edit-trainer]").forEach(function(el){
+      el.addEventListener("click", function(){ openTrainerModal(el.getAttribute("data-edit-trainer")); });
+    });
+    document.querySelectorAll("[data-delete-trainer]").forEach(function(el){
+      el.addEventListener("click", function(){ deleteTrainer(el.getAttribute("data-delete-trainer")); });
+    });
+
+    document.querySelectorAll("[data-add-list]").forEach(function(el){
+      el.addEventListener("click", function(){
+        var key = el.getAttribute("data-add-list");
+        var input = document.querySelector('[data-list-input="'+key+'"]');
+        var val = input.value.trim();
+        if(!val) return;
+        if(state.lists[key].indexOf(val) === -1){
+          state.lists[key].push(val);
+          persistLists();
+          logAction("added to master list", key+": "+val);
+        }
+        render();
+      });
+    });
+    document.querySelectorAll("[data-remove-list]").forEach(function(el){
+      el.addEventListener("click", function(){
+        var key = el.getAttribute("data-remove-list");
+        var val = el.getAttribute("data-value");
+        state.lists[key] = state.lists[key].filter(function(v){ return v !== val; });
+        persistLists();
+        logAction("removed from master list", key+": "+val);
+        render();
+      });
+    });
+  }
+
+  function renderMainOnly(){
+    var mainEl = document.querySelector("main");
+    if(mainEl) mainEl.innerHTML = renderMain();
+    bindGlobalEvents();
+    if(state.tab === "dashboard") renderCharts();
+  }
+
+  function toggleFilterArray(arr, val, checked){
+    var idx = arr.indexOf(val);
+    if(checked && idx === -1) arr.push(val);
+    if(!checked && idx > -1) arr.splice(idx,1);
+  }
+
+  /* ---------------- Identity modal ---------------- */
+  function openIdentityModal(){
+    var dlg = createDialog("Switch user", '' +
+      '<div class="field"><label>Your name</label><input type="text" id="id-name" value="'+esc(state.identity.name)+'" placeholder="e.g. Amara Okafor"></div>' +
+      '<div class="field"><label>Country / team</label><select id="id-country"><option value="">Not set</option>' +
+        state.lists.countries.map(function(c){ return '<option value="'+esc(c)+'" '+(state.identity.country===c?'selected':'')+'>'+esc(c)+'</option>'; }).join("") +
+      '</select></div>' +
+      '<div class="field"><label>Role</label><select id="id-role">' +
+        ROLES.map(function(r){ return '<option value="'+r+'" '+(state.identity.role===r?'selected':'')+'>'+r+'</option>'; }).join("") +
+      '</select><div class="help-text">Viewer: read-only. Team Member: add/edit trainings & trainers. Admin: also delete records and manage master lists. This is self-declared — agree as a team on who uses Admin.</div></div>',
+      "Save"
+    );
+    dlg.querySelector(".save-btn").addEventListener("click", function(){
+      state.identity = {
+        name: document.getElementById("id-name").value.trim() || "Guest",
+        country: document.getElementById("id-country").value,
+        role: document.getElementById("id-role").value
+      };
+      persistIdentity();
+      logAction("signed in as", state.identity.role);
+      dlg.close();
+      dlg.remove();
+      render();
+    });
+  }
+
+  /* ---------------- Training modal ---------------- */
+  function openTrainingModal(id){
+    var editing = id ? state.trainings.find(function(t){ return t.id === id; }) : null;
+    var t = editing || {curriculum:"", country: state.identity.country || "", type:"", month:null, status:"tbd", trainers:[], notes:""};
+    var readOnly = !canEdit();
+
+    var curriculumOptions = state.lists.curricula.map(function(c){ return '<option value="'+esc(c)+'" '+(t.curriculum===c?'selected':'')+'>'+esc(c)+'</option>'; }).join("");
+    var countryOptions = state.lists.countries.map(function(c){ return '<option value="'+esc(c)+'" '+(t.country===c?'selected':'')+'>'+esc(c)+'</option>'; }).join("");
+    var typeOptions = state.lists.types.map(function(c){ return '<option value="'+esc(c)+'" '+(t.type===c?'selected':'')+'>'+esc(c)+'</option>'; }).join("");
+    var monthOptions = '<option value="">TBD</option>' + MONTHS.map(function(m,i){ return '<option value="'+(i+1)+'" '+(t.month===i+1?'selected':'')+'>'+m+'</option>'; }).join("");
+    var statusOptions = Object.keys(STATUS).map(function(k){ return '<option value="'+k+'" '+(t.status===k?'selected':'')+'>'+STATUS[k].label+'</option>'; }).join("");
+    var trainerChecks = state.trainers.map(function(tr){
+      return '<label class="chip-check"><input type="checkbox" class="trainer-pick" value="'+tr.id+'" '+((t.trainers||[]).indexOf(tr.id)>-1?'checked':'')+'> '+esc(tr.name)+'</label>';
+    }).join("") || '<span class="muted" style="font-size:.8rem;">No trainers in directory yet — add some in the Trainers tab.</span>';
+
+    var body = '' +
+      '<div class="field-row">' +
+        '<div class="field"><label>Curriculum / Programme</label><select id="tf-curriculum" '+(readOnly?'disabled':'')+'>'+curriculumOptions+'</select></div>' +
+        '<div class="field"><label>Country</label><select id="tf-country" '+(readOnly?'disabled':'')+'>'+countryOptions+'</select></div>' +
+      '</div>' +
+      '<div class="field-row">' +
+        '<div class="field"><label>Type</label><select id="tf-type" '+(readOnly?'disabled':'')+'>'+typeOptions+'</select></div>' +
+        '<div class="field"><label>Month</label><select id="tf-month" '+(readOnly?'disabled':'')+'>'+monthOptions+'</select></div>' +
+      '</div>' +
+      '<div class="field"><label>Status</label><select id="tf-status" '+(readOnly?'disabled':'')+'>'+statusOptions+'</select></div>' +
+      '<div class="field"><label>Trainers assigned</label><div class="checkbox-grid">'+trainerChecks+'</div></div>' +
+      '<div class="field"><label>Notes</label><textarea id="tf-notes" rows="3" placeholder="Venue, contact, dependencies…" '+(readOnly?'disabled':'')+'>'+esc(t.notes||"")+'</textarea></div>';
+
+    var dlg = createDialog(editing ? "Edit training" : "Add training", body, readOnly ? null : "Save");
+
+    if(!readOnly){
+      dlg.querySelector(".save-btn").addEventListener("click", function(){
+        var curriculum = document.getElementById("tf-curriculum").value;
+        var country = document.getElementById("tf-country").value;
+        if(!curriculum || !country){ alert("Please choose a curriculum and country."); return; }
+        var monthVal = document.getElementById("tf-month").value;
+        var picked = Array.prototype.slice.call(document.querySelectorAll(".trainer-pick:checked")).map(function(el){ return el.value; });
+
+        var record = {
+          id: editing ? editing.id : uid("tr"),
+          curriculum: curriculum,
+          country: country,
+          type: document.getElementById("tf-type").value,
+          month: monthVal ? parseInt(monthVal,10) : null,
+          status: document.getElementById("tf-status").value,
+          trainers: picked,
+          notes: document.getElementById("tf-notes").value.trim(),
+          updatedBy: state.identity.name || "Guest",
+          updatedAt: new Date().toISOString()
+        };
+
+        if(editing){
+          state.trainings = state.trainings.map(function(x){ return x.id === editing.id ? record : x; });
+          logAction("updated training", record.curriculum+" · "+record.country);
+        } else {
+          state.trainings.push(record);
+          logAction("added training", record.curriculum+" · "+record.country);
+        }
+        persistTrainings();
+        dlg.close(); dlg.remove();
+        render();
+      });
+    }
+  }
+
+  function deleteTraining(id){
+    var t = state.trainings.find(function(x){ return x.id === id; });
+    if(!t) return;
+    if(!confirm('Delete "'+t.curriculum+' — '+t.country+'"? This can\'t be undone.')) return;
+    state.trainings = state.trainings.filter(function(x){ return x.id !== id; });
+    persistTrainings();
+    logAction("deleted training", t.curriculum+" · "+t.country);
+    render();
+  }
+
+  /* ---------------- Trainer modal ---------------- */
+  function openTrainerModal(id){
+    var editing = id ? state.trainers.find(function(t){ return t.id === id; }) : null;
+    var t = editing || {name:"", country:"", email:"", specialties:[]};
+    var readOnly = !canEdit();
+    var countryOptions = '<option value="">Not set</option>' + state.lists.countries.map(function(c){ return '<option value="'+esc(c)+'" '+(t.country===c?'selected':'')+'>'+esc(c)+'</option>'; }).join("");
+
+    var body = '' +
+      '<div class="field"><label>Full name</label><input type="text" id="tr-name" value="'+esc(t.name)+'" '+(readOnly?'disabled':'')+'></div>' +
+      '<div class="field-row">' +
+        '<div class="field"><label>Based in</label><select id="tr-country" '+(readOnly?'disabled':'')+'>'+countryOptions+'</select></div>' +
+        '<div class="field"><label>Email (optional)</label><input type="text" id="tr-email" value="'+esc(t.email||"")+'" '+(readOnly?'disabled':'')+'></div>' +
+      '</div>' +
+      '<div class="field"><label>Specialties (comma separated)</label><input type="text" id="tr-specialties" value="'+esc((t.specialties||[]).join(", "))+'" placeholder="e.g. ToC, MindSKILLZ, ToMC" '+(readOnly?'disabled':'')+'></div>';
+
+    var dlg = createDialog(editing ? "Edit trainer" : "Add trainer", body, readOnly ? null : "Save");
+
+    if(!readOnly){
+      dlg.querySelector(".save-btn").addEventListener("click", function(){
+        var name = document.getElementById("tr-name").value.trim();
+        if(!name){ alert("Please enter a name."); return; }
+        var record = {
+          id: editing ? editing.id : uid("trn"),
+          name: name,
+          country: document.getElementById("tr-country").value,
+          email: document.getElementById("tr-email").value.trim(),
+          specialties: document.getElementById("tr-specialties").value.split(",").map(function(s){return s.trim();}).filter(Boolean)
+        };
+        if(editing){
+          state.trainers = state.trainers.map(function(x){ return x.id === editing.id ? record : x; });
+          logAction("updated trainer", record.name);
+        } else {
+          state.trainers.push(record);
+          logAction("added trainer", record.name);
+        }
+        persistTrainers();
+        dlg.close(); dlg.remove();
+        render();
+      });
+    }
+  }
+
+  function deleteTrainer(id){
+    var t = state.trainers.find(function(x){ return x.id === id; });
+    if(!t) return;
+    if(!confirm('Remove trainer "'+t.name+'"? They will be unassigned from any trainings.')) return;
+    state.trainers = state.trainers.filter(function(x){ return x.id !== id; });
+    state.trainings = state.trainings.map(function(x){
+      x.trainers = (x.trainers||[]).filter(function(tid){ return tid !== id; });
+      return x;
+    });
+    persistTrainers();
+    persistTrainings();
+    logAction("removed trainer", t.name);
+    render();
+  }
+
+  /* ---------------- Dialog helper ---------------- */
+  function createDialog(title, bodyHtml, saveLabel){
+    var dlg = document.createElement("dialog");
+    dlg.innerHTML = '' +
+      '<div class="dialog-head"><h3>'+esc(title)+'</h3><button class="close-x" aria-label="Close">×</button></div>' +
+      '<div class="dialog-body">'+bodyHtml+'</div>' +
+      '<div class="dialog-foot"><button class="btn secondary cancel-btn">'+(saveLabel?'Cancel':'Close')+'</button>' +
+      (saveLabel ? '<button class="btn save-btn">'+saveLabel+'</button>' : '') +
+      '</div>';
+    document.body.appendChild(dlg);
+    dlg.querySelector(".close-x").addEventListener("click", function(){ dlg.close(); dlg.remove(); });
+    dlg.querySelector(".cancel-btn").addEventListener("click", function(){ dlg.close(); dlg.remove(); });
+    dlg.addEventListener("cancel", function(){ dlg.remove(); });
+    dlg.showModal();
+    return dlg;
+  }
+
+  /* ---------------- CSV export ---------------- */
+  function exportCSV(){
+    var rows = filteredTrainings();
+    var header = ["Curriculum","Country","Type","Month","Status","Trainers","Notes","Last updated by","Last updated at"];
+    var lines = [header.join(",")];
+    rows.forEach(function(t){
+      var trainerNames = (t.trainers||[]).map(trainerName).filter(Boolean).join("; ");
+      var vals = [
+        t.curriculum, t.country, t.type, t.month ? MONTHS[t.month-1] : "TBD",
+        (STATUS[t.status]||{}).label || t.status, trainerNames, t.notes||"",
+        t.updatedBy||"", t.updatedAt||""
+      ].map(function(v){
+        v = String(v||"").replace(/"/g,'""');
+        return '"'+v+'"';
+      });
+      lines.push(vals.join(","));
+    });
+    var blob = new Blob([lines.join("\n")], {type:"text/csv"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "grs-training-calendar-2026.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
